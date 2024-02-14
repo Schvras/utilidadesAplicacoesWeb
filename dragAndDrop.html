@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Drop</title>
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+
+        .droppable {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .draggable-items{
+            display: flex;
+            gap: 10px;
+        }
+
+        .draggable {
+            width: 100px;
+            height: 50px;
+            background-color: rgb(85, 85, 85);
+            color: #fff;
+            text-align: center;
+            line-height: 50px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .droppable:empty::after{
+            content: attr(data-text-empty);
+        }
+
+        .draggable[draggable=false] {
+            opacity: .5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="droppable" ondrop="drop(event)" ondragover="allowDrop(event)" data-text-empty="Solte aqui os elementos"></div>
+    <div class="draggable-items">
+        <div id="drag1" class="draggable" draggable="true" ondragstart="drag(event)">Arraste-me 1</div>
+        <div id="drag2" class="draggable" draggable="true" ondragstart="drag(event)">Arraste-me 2</div>
+        <div id="drag3" class="draggable" draggable="true" ondragstart="drag(event)">Arraste-me 3</div>
+        <div id="drag4" class="draggable" draggable="true" ondragstart="drag(event)">Arraste-me 4</div>
+        <div id="drag5" class="draggable" draggable="true" ondragstart="drag(event)">Arraste-me 5</div>
+    </div>
+    
+
+    <script>
+        function allowDrop(event) {
+            event.preventDefault(); // Impede o comportamento padrão de não permitir soltar
+        }
+
+        function drag(event) {
+            // Definir os dados que serão transferidos durante o arrastar
+            event.dataTransfer.setData("text", event.target.id);
+        }
+
+        function drop(event) {
+            event.preventDefault(); // Impede o comportamento padrão de abrir o link quando solto
+
+            const dragElem = document.getElementById( event.dataTransfer.getData("text") );
+            const destino = event.target;
+
+            if(!dragElem || !destino) return;
+
+            if(dragElem.getAttribute('clone') == 'true' && destino.id == dragElem.getAttribute('parent-id')){
+
+                dragElem.remove();
+                destino.setAttribute('draggable', 'true');
+                destino.removeEventListener('drop',drop);
+                destino.removeEventListener('dragover',allowDrop);
+
+            }else if(destino.classList.contains('droppable') && dragElem.getAttribute('clone') != 'true'){
+
+                dragElem.setAttribute('draggable', 'false');
+
+                const newElem = dragElem.cloneNode(true);
+
+                newElem.setAttribute('clone', 'true');
+                destino.appendChild(newElem);
+
+                newElem.setAttribute('id',`${newElem.getAttribute('id')}.cloned`);
+                newElem.setAttribute('parent-id',`${dragElem.getAttribute('id')}`);
+
+                const transferirElemento = () =>{
+                    newElem.setAttribute('draggable', 'true');
+                    dragElem.addEventListener('drop',drop);
+                    dragElem.addEventListener('dragover',allowDrop);
+                }
+
+                setTimeout(transferirElemento, 3000);
+            }
+        }
+
+        function meDrop(){
+            event.preventDefault(); // Impede o comportamento padrão de abrir o link quando solto
+
+            const id =  event.dataTransfer.getData("text");
+            const dragElem = document.querySelector( `[parent-id=${id}]`);
+            const destino = event.target;
+
+            if (id != destino.getAttribute('id')) return;
+        }
+    </script>
+
+</body>
+
+</html>
